@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 
 class StopTime:
@@ -15,22 +16,28 @@ class StopTime:
         self.prev_stop_id = self.stop_id
         self.prev_departure_time = self.departure_time
         self.distance_from_previous = self.shape_dist_traveled
+        self.time_diff = 0
 
     def __str__(self):
-        return "{},{},{},{},{},{},{},{},{},{}".format(self.stop_sequence, self.stop_id, self.departure_time,
-                                                      self.pickup_type, self.drop_off_type, self.timePoint,
-                                                      self.shape_dist_traveled, self.prev_stop_id,
-                                                      self.prev_departure_time, self.distance_from_previous)
+        return "{},{},{},{},{},{},{},{},{},{},{}".format(self.stop_sequence, self.stop_id, self.departure_time,
+                                                         self.pickup_type, self.drop_off_type, self.timePoint,
+                                                         self.shape_dist_traveled, self.prev_stop_id,
+                                                         self.prev_departure_time, self.distance_from_previous,
+                                                         self.time_diff)
 
     @staticmethod
     def get_header():
         return "stop_sequence,stop_id,departure_time,pickup_type,drop_off_type,timePoint,shape_dist_traveled," \
-               "prev_stop_id,prev_departure_time,distance_from_previous"
+               "prev_stop_id,prev_departure_time,distance_from_previous,time_diff"
 
     def add_fields_from_previous(self, prev):
         self.prev_stop_id = prev.stop_id
         self.prev_departure_time = prev.departure_time
         self.distance_from_previous = self.shape_dist_traveled - prev.shape_dist_traveled
+
+        FMT = '%H:%M:%S'
+        tdelta = datetime.strptime(self.departure_time, FMT) - datetime.strptime(prev.departure_time, FMT)
+        self.time_diff = tdelta
 
 
 class StopTimeCollection:
