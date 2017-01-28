@@ -8,7 +8,7 @@ class StopTime:
         self.trip_id = split_line[0]
         self.stop_sequence = int(split_line[1])
         self.stop_id = split_line[2]
-        self.departure_time = split_line[5]
+        self.departure_time = StopTime.get_datetime_as_hours(split_line[5])
         self.pickup_type = split_line[6]
         self.drop_off_type = split_line[7]
         self.timePoint = split_line[8]
@@ -16,7 +16,7 @@ class StopTime:
         self.prev_stop_id = self.stop_id
         self.prev_departure_time = self.departure_time
         self.distance_from_previous = self.shape_dist_traveled
-        self.time_diff = 0
+        self.time_diff = None
 
     def __str__(self):
         return "{},{},{},{},{},{},{},{},{},{},{}".format(self.stop_sequence, self.stop_id, self.departure_time,
@@ -30,14 +30,22 @@ class StopTime:
         return "stop_sequence,stop_id,departure_time,pickup_type,drop_off_type,timePoint,shape_dist_traveled," \
                "prev_stop_id,prev_departure_time,distance_from_previous,time_diff"
 
+    @staticmethod
+    def get_datetime(text):
+        f_m_t = '%H:%M:%S'
+        return datetime.strptime(text, f_m_t)
+
+    @staticmethod
+    def get_datetime_as_hours(time_as_text):
+        time = StopTime.get_datetime(time_as_text)
+        return time.hour + time.minute/60 + time.second/3600
+
     def add_fields_from_previous(self, prev):
         self.prev_stop_id = prev.stop_id
         self.prev_departure_time = prev.departure_time
         self.distance_from_previous = self.shape_dist_traveled - prev.shape_dist_traveled
 
-        FMT = '%H:%M:%S'
-        tdelta = datetime.strptime(self.departure_time, FMT) - datetime.strptime(prev.departure_time, FMT)
-        self.time_diff = tdelta
+        self.time_diff = self.departure_time - prev.departure_time
 
 
 class StopTimeCollection:
@@ -56,11 +64,10 @@ class StopTimeCollection:
         with open(self.destinationFile, "a+") as f:
             f.write("{0}\n".format(StopTime.get_header()))
 
-    def order_stop_time_group(self):
+    def __order_stop_time_group(self):
         self.stopTimeGroup.sort(key=lambda s: s.stop_sequence)
 
-    def set_extra_stop_time_fields(self):
-
+    def __set_extra_stop_time_fields(self):
         for index in range(1, len(self.stopTimeGroup)):
             self.stopTimeGroup[index].add_fields_from_previous(self.stopTimeGroup[index - 1])
 
@@ -73,14 +80,15 @@ class StopTimeCollection:
         if stop_time.trip_id == self.stopTimeGroup[-1].trip_id:
             self.stopTimeGroup.append(stop_time)
         else:
-            self.order_stop_time_group()
-            self.set_extra_stop_time_fields()
-            self.save_group_to_file()
+            self.__order_stop_time_group()
+            self.__set_extra_stop_time_fields()
+            self.__save_group_to_file()
             self.stopTimeGroup.clear()
 
-    def save_group_to_file(self):
+    def __save_group_to_file(self):
         with open(self.destinationFile, "a+") as f:
-            for stop_time in self.stopTimeGroup:
+            for index in range(1, len(self.stopTimeGroup)):
+                stop_time = self.stopTimeGroup[index]
                 f.write("{0}\n".format(str(stop_time)))
 
 
