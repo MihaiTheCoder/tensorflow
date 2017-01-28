@@ -8,11 +8,15 @@ class StopTime:
         self.trip_id = split_line[0]
         self.stop_sequence = int(split_line[1])
         self.stop_id = split_line[2]
-        self.departure_time = StopTime.get_datetime_as_hours(split_line[5])
+        self.departure_time = StopTime.get_datetime(split_line[5])
         self.pickup_type = split_line[6]
         self.drop_off_type = split_line[7]
         self.timePoint = split_line[8]
-        self.shape_dist_traveled = float(split_line[9])
+        try:
+            self.shape_dist_traveled = float(split_line[9])
+        except ValueError:
+            self.shape_dist_traveled = 0
+
         self.prev_stop_id = self.stop_id
         self.prev_departure_time = self.departure_time
         self.distance_from_previous = self.shape_dist_traveled
@@ -32,13 +36,11 @@ class StopTime:
 
     @staticmethod
     def get_datetime(text):
-        f_m_t = '%H:%M:%S'
-        return datetime.strptime(text, f_m_t)
-
-    @staticmethod
-    def get_datetime_as_hours(time_as_text):
-        time = StopTime.get_datetime(time_as_text)
-        return time.hour + time.minute/60 + time.second/3600
+        hours_minutes_seconds = text.split(":")
+        hours = int(hours_minutes_seconds[0])
+        minutes = int(hours_minutes_seconds[1])
+        seconds = int(hours_minutes_seconds[2])
+        return hours + (minutes / 60) + (seconds / 3600)
 
     def add_fields_from_previous(self, prev):
         self.prev_stop_id = prev.stop_id
@@ -99,7 +101,7 @@ def read_csv(input_file, process_line):
             process_line(line)
 
 
-inputFile = r'D:\Personale\TensorExamples\tensorflow\small_stop_times.csv'
+inputFile = r'D:\Personale\TensorExamples\Cristina\gtfs-nl\stop_times.txt'
 processedFile = r'D:\Personale\TensorExamples\tensorflow\stop_times_proc.csv'
 
 if __name__ == '__main__':
