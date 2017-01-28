@@ -102,6 +102,7 @@ def read_csv(input_file, process_line):
 
 
 inputFile = r'D:\Personale\TensorExamples\Cristina\gtfs-nl\stop_times.txt'
+#inputFile = r'D:\Personale\TensorExamples\tensorflow\small_stop_times.csv'
 processedFile = r'D:\Personale\TensorExamples\tensorflow\stop_times_proc.csv'
 
 if __name__ == '__main__':
